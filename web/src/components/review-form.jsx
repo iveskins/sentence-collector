@@ -11,6 +11,16 @@ const DEFAULT_STATE = {
   page: 0,
 };
 
+function synthVoice(text) {
+	  const synth = window.speechSynthesis;
+	  const utterance = new SpeechSynthesisUtterance();
+	  utterance.text = text;
+	  synth.speak(utterance);
+	
+}
+
+
+
 export default class ReviewForm extends React.Component {
   constructor(props) {
     super(props);
@@ -108,6 +118,7 @@ export default class ReviewForm extends React.Component {
         message = (<p>You have successfully reviewed your {this.state.page * PAGE_SIZE}th sentence!</p>)
       }
 
+     //{synthVoice(curSentences[0].sentence)}
       return (
         <form id="review-form" onSubmit={this.onSubmit}>
           <p>Swipe right to approve sentence, swipe left to reject it.</p>
@@ -121,11 +132,25 @@ export default class ReviewForm extends React.Component {
             }
           }} className="master-root" ref={this.cardsRef}>
             {curSentences.map((sentence, i) => (
-              <Card
-                key={offset + i}
-                onSwipeLeft={() => this.reviewSentence(offset + i, false)}
-                onSwipeRight={() => this.reviewSentence(offset + i, true)}
-              >
+	      <Card
+	       key={offset + i}
+	       onSwipeLeft={sentences[offset+i+1] == undefined ? (
+		       () => (this.reviewSentence(offset + i, false),
+				    synthVoice("rejected") )
+	       ) : (
+		       () => (this.reviewSentence(offset + i, false),
+				    synthVoice("rejected"),
+				    synthVoice("nextcard " + sentences[offset+i+1].sentence) )
+	       )}
+	       onSwipeRight={sentences[offset+i+1] == undefined ? (
+		       () => (this.reviewSentence(offset + i, true),
+				    synthVoice("accepted") )
+	       ) : (
+		       () => (this.reviewSentence(offset + i, true),
+				    synthVoice("accepted"),
+				    synthVoice("nextcard " +  sentences[offset+i+1].sentence) )
+	       )}
+		     >
                 <div className="card-sentence-box">
                   {sentence.sentence || sentence}
                 </div>
